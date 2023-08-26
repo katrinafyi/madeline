@@ -108,7 +108,7 @@ using state_t = bool;
 
   for (const auto &[c, count] : pending) {
     std::set<coord_t> cs{};
-    for (int i = 0; i < 6; i++) {
+    for (unsigned i = 0; i < 6; i++) {
       coord_t other = hex::hex_neighbor(c, i);
       if (coords.contains(other)) {
         cs.insert(other);
