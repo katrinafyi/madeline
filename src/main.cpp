@@ -3,6 +3,7 @@
 #include "hexcells.h"
 #include "imgui.h"
 #include "level.h"
+#include "prover.h"
 #include <memory>
 
 namespace im = ImGui;
@@ -161,7 +162,14 @@ int main(int, char *[]) {
   dock_right.dockSpaceName = "Right";
   dock_right.GuiFunction = &gui;
 
-  params.dockingParams.dockableWindows = {dock_left, dock_right};
+  prover::proof_widget<hexcells::coord_t, hexcells::state_t> prover_gui{
+      level_ptr, {}, true, {*level_ptr->facts().cbegin()}};
+  HelloImGui::DockableWindow dock_prover;
+  dock_prover.label = "Prover";
+  dock_prover.dockSpaceName = "Right";
+  dock_prover.GuiFunction = [&] { prover_gui.render(); };
+
+  params.dockingParams.dockableWindows = {dock_left, dock_right, dock_prover};
 
   params.callbacks.ShowMenus = [] {};
 

@@ -37,7 +37,7 @@ FetchContent_MakeAvailable(json)
 ##########################################################
 # Build your app
 ##########################################################
-hello_imgui_add_app(madeline src/main.cpp src/hexcells.cpp src/lib/hexgrid.cpp)
+hello_imgui_add_app(madeline src/main.cpp src/hexcells.cpp src/lib/hexgrid.cpp src/ui.cpp)
 
 target_link_libraries(madeline PRIVATE nlohmann_json::nlohmann_json)
 
