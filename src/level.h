@@ -48,6 +48,11 @@ public:
   using data = ::data<C, S>;
   using fact = ::fact<C>;
 
+  struct GS {
+    std::optional<C> selected{};
+    std::optional<C> hovered{};
+  } GUIstate;
+
 protected:
   const data _data;
   const std::set<C> _coords;
@@ -56,6 +61,20 @@ protected:
   constexpr std::map<C, bool> _states_init(const data &data) {}
 
 public:
+  int hint_number(const C coord) const {
+    int n = 0;
+    for (auto x : facts()) {
+      if (x.hiders.contains(coord)) {
+        for (auto y : x.coords) {
+          if (_data.coords.at(y)) {
+            n++;
+          }
+        }
+      }
+    }
+    return n;
+  }
+
   level(data data) : _data(data), _coords(keys_of_map(data.coords)) { reset(); }
 
   level(const level &) = delete;

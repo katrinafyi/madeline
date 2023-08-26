@@ -32,7 +32,7 @@ struct Hex {
   //     throw "q + r + s must be 0";
   // }
 
-  friend std::strong_ordering operator<=>(const Hex& l, const Hex& r) = default;
+  friend std::strong_ordering operator<=>(const Hex &l, const Hex &r) = default;
 };
 
 struct FractionalHex {
@@ -80,7 +80,6 @@ struct Layout {
   Layout(Orientation orientation_, Point size_, Point origin_)
       : orientation(orientation_), size(size_), origin(origin_) {}
 };
-
 
 Hex hex_add(Hex a, Hex b);
 
@@ -146,6 +145,7 @@ Point hex_corner_offset(Layout layout, int corner);
 
 vector<Point> polygon_corners(Layout layout, Hex h);
 
+Hex cube_round(FractionalHex frac);
 
 // Tests
 } // namespace hex

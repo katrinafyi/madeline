@@ -136,6 +136,26 @@ Point hex_to_pixel(Layout layout, Hex h) {
   return Point(x + origin.x, y + origin.y);
 }
 
+Hex cube_round(FractionalHex frac) {
+  auto q = round(frac.q);
+  auto r = round(frac.r);
+  auto s = round(frac.s);
+
+  auto q_diff = abs(q - frac.q);
+  auto r_diff = abs(r - frac.r);
+  auto s_diff = abs(s - frac.s);
+
+  if (q_diff > r_diff && q_diff > s_diff) {
+    q = -r - s;
+  } else if (r_diff > s_diff) {
+    r = -q - s;
+  } else {
+    s = -q - r;
+  }
+
+  return Hex(q, r, s);
+}
+
 FractionalHex pixel_to_hex(Layout layout, Point p) {
   Orientation M = layout.orientation;
   Point size = layout.size;
