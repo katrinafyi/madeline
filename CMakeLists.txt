@@ -31,11 +31,15 @@ FetchContent_MakeAvailable(hello_imgui)
 list(APPEND CMAKE_MODULE_PATH ${HELLOIMGUI_CMAKE_PATH})
 include(hello_imgui_add_app)
 
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 ##########################################################
 # Build your app
 ##########################################################
-hello_imgui_add_app(madeline src/main.cpp)
+hello_imgui_add_app(madeline src/main.cpp src/hexcells.cpp src/lib/hexgrid.cpp)
 
+target_link_libraries(madeline PRIVATE nlohmann_json::nlohmann_json)
 
 target_compile_options(madeline PRIVATE -g -fsanitize=address,undefined -Wall -pedantic)
 target_link_options(madeline PRIVATE -g -fsanitize=address,undefined)
