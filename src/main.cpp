@@ -14,7 +14,7 @@ void gui() {
 
 int main(int, char *[]) {
 
-  hexcells::level1();
+  hexcells::make_level(1);
 
   HelloImGui::RunnerParams runner;
 

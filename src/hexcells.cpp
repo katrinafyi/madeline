@@ -1,19 +1,22 @@
+#include <format>
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include "lib/hexgrid.h"
+#include "hexcells.h"
 #include "level.h"
+#include "lib/hexgrid.h"
 
 namespace hexcells {
 
 using coord_t = hex::Hex;
 using state_t = bool;
 
-::level<coord_t, state_t>::data builder1() {
+::data<coord_t, state_t> builder1() {
   coord_t pos{0, 0, 0};
   std::map<coord_t, state_t> coords{{pos, false}};
   std::map<coord_t, unsigned> pending;
-  std::set<::level<coord_t, state_t>::fact> facts;
+  std::set<fact<coord_t>> facts;
+  std::set<coord_t> initials;
 
   // clang-format off
   auto n  = [&]() { pos = hex::hex_add(pos, {0, -1, 1}); };
@@ -22,6 +25,9 @@ using state_t = bool;
   auto s  = [&]() { pos = hex::hex_add(pos, {0, 1, -1}); };
   auto sw = [&]() { pos = hex::hex_add(pos, {-1, 1, 0}); };
   auto nw = [&]() { pos = hex::hex_add(pos, {-1, 0, 1}); };
+
+  auto initial = [&]() { initials.insert(pos); };
+
   // clang-format on
 
   auto num = [&](unsigned n) {
@@ -35,6 +41,7 @@ using state_t = bool;
   };
 
   if (1) {
+    initial();
     num(0);
     n();
     num(0);
@@ -65,6 +72,7 @@ using state_t = bool;
     se();
     mine();
     n();
+    initial();
     num(2);
     n();
     num(2);
@@ -95,6 +103,7 @@ using state_t = bool;
     num(1);
     n();
     num(0);
+    initial();
   }
 
   for (const auto &[c, count] : pending) {
@@ -105,25 +114,21 @@ using state_t = bool;
         cs.insert(other);
       }
     }
-    facts.insert({{c}, cs, "asdf"});
+
+    facts.insert({{c}, cs, std::format("= {}", pending.at(c))});
   }
 
-  return {coords, facts};
+  return {coords, facts, initials};
 }
 
-struct level1 : ::level<coord_t, state_t> {
+std::shared_ptr<::level<coord_t, state_t>> make_level(unsigned level_num) {
 
-  void reset() override {}
-};
-
-struct level1 *level1() {
-
-  ::level<coord_t, state_t>::data x = builder1();
+  level1::data x = builder1();
 
   std::cout << nlohmann::json{x} << std::endl;
   // hexcells_level a{};
-  // static_assert(!std::is_abstract_v<struct level1>);
-  return nullptr;
+  static_assert(!std::is_abstract_v<struct level1>);
+  return std::make_shared<struct level1>(x);
 }
 
 }; // namespace hexcells
