@@ -48,6 +48,11 @@ public:
   using data = ::data<C, S>;
   using fact = ::fact<C>;
 
+  struct GS {
+    std::optional<C> selected{};
+    std::optional<C> hovered{};
+  } GUIstate;
+
 protected:
   const data _data;
   const std::set<C> _coords;
