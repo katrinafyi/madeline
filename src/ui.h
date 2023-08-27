@@ -1,10 +1,10 @@
 #pragma once
 
-#include <format>
 #include <iostream>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <z3++.h>
@@ -69,11 +69,12 @@ template <typename C, typename S> struct fact_widget {
     for (auto &c : fact.hiders) {
       coord_widget{ui_state, c}.render();
     }
+    std::stringstream s{};
+
+    s << ": " << fact.rhs << " " << enum_name((::cmp) - (int)fact.cmp);
 
     // note: inequality is reversed
-    im::Text(
-        std::format(": {} {}", fact.rhs, enum_name((::cmp) - (int)fact.cmp))
-            .c_str());
+    im::Text(s.str().c_str());
     im::SameLine();
     bool first = true;
     for (auto &c : fact.coords) {
