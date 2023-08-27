@@ -57,7 +57,7 @@ public:
 protected:
   const data _data;
   const std::set<C> _coords;
-  std::map<C, bool> _states;
+  std::map<C, bool> _revealed;
 
   constexpr std::map<C, bool> _states_init(const data &data) {}
 
@@ -82,9 +82,9 @@ public:
   level &operator=(const level &) = delete;
 
   virtual void reset() {
-    _states.clear();
+    _revealed.clear();
     for (auto &x : _data.coords) {
-      _states[x.first] = _data.initial.contains(x.first);
+      _revealed[x.first] = _data.initial.contains(x.first);
     }
   };
 
@@ -92,7 +92,7 @@ public:
 
   virtual std::set<C> coords() const & { return _coords; }
   virtual S state(const C &c) const & { return _data.coords.at(c); }
-  virtual bool solved(const C &c) const & { return _states.at(c); }
+  virtual bool solved(const C &c) const & { return _revealed.at(c); }
 
   virtual const std::set<fact> facts() const & { return _data.facts; }
   virtual const std::set<fact> facts_of_coord(const C &c) const & {
@@ -113,6 +113,7 @@ public:
     if (state(c) != s) {
       return false;
     }
+    _revealed.at(c) = true;
     return true;
   }
 

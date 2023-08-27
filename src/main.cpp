@@ -105,16 +105,42 @@ struct GUI {
 
       if (x == ui_state.highlight) {
         draw_list->AddNgonFilled(ImVec2(pixels.x, pixels.y), 21,
-                                 IM_COL32(220, 220, 220, 220), 6);
+                                 IM_COL32(220, 220, 220, 255), 6);
+      }
+      if (ui_state.active_prover && x == ui_state.active_prover->focus) {
+        draw_list->AddNgonFilled(ImVec2(pixels.x, pixels.y), 21,
+                                 IM_COL32(255, 255, 255, 255), 6);
       }
       draw_list->AddNgonFilled(ImVec2(pixels.x, pixels.y), 20, col, 6);
+
+      char label_buf[20];
+      bool show_label = true;
       if (solved) {
         int number = level_ptr->hint_number(x);
+        snprintf(label_buf, 19, "%d", number);
+        if (x == selected) {
+          if (ui_state.active_prover) {
+            im::SetTooltip("solved cell. click to add fact.");
+          } else {
+            im::SetTooltip("solved cell.");
+          }
+        }
+      } else if (ui_state.proofs.contains(x)) {
+        label_buf[0] = '*';
+        label_buf[1] = '\0';
 
-        char number_buf[20];
-        snprintf(number_buf, 19, "%d", number);
-        draw_list->AddText(ImVec2(pixels.x, pixels.y), ImColor(0, 0, 0, 255),
-                           number_buf, number_buf + strlen(number_buf));
+        if (x == selected) {
+          im::SetTooltip("unsolved cell. click to open proof.");
+        }
+      } else {
+        show_label = false;
+      }
+
+      if (show_label) {
+        ImVec2 size = im::CalcTextSize(label_buf);
+        draw_list->AddText(
+            ImVec2(pixels.x - 0.4 * size.x, pixels.y - 0.4 * size.y),
+            ImColor(0, 0, 0, 255), label_buf, label_buf + strlen(label_buf));
       }
     }
     draw_list->PopClipRect();
@@ -146,12 +172,28 @@ struct GUI {
           (ImGuiPopupFlags_MouseButtonLeft & ImGuiPopupFlags_MouseButtonMask_);
       if (ImGui::IsMouseReleased(mouse_button) &&
           ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
-        if (any_selected) {
+        if (any_selected && !ui_state.level_ptr->solved(selected)) {
           if (ui_state.proofs.contains(selected)) {
             ui_state.active_prover = &ui_state.proofs.at(selected);
           } else {
             ui_state.proofs.insert({selected, {ui_state, selected}});
             ui_state.active_prover = &ui_state.proofs.at(selected);
+          }
+        }
+      }
+      mouse_button =
+          (ImGuiPopupFlags_MouseButtonRight & ImGuiPopupFlags_MouseButtonMask_);
+      if (ImGui::IsMouseReleased(mouse_button)) {
+        if (ui_state.active_prover) {
+          auto &l = *ui_state.level_ptr;
+          auto &facts = ui_state.active_prover->facts;
+          for (auto &f : ui_state.level_ptr->facts()) {
+            if (!l.is_known(f))
+              continue;
+            if (f.hiders.contains(selected) &&
+                std::find(facts.cbegin(), facts.cend(), f) == facts.cend()) {
+              ui_state.active_prover->facts.push_back(f);
+            }
           }
         }
       }
@@ -210,17 +252,27 @@ int main(int, char *[]) {
   dock_right.dockSpaceName = "Right";
   dock_right.GuiFunction = &GUI::gui;
 
-  ui::proof_widget<hexcells::coord_t, hexcells::state_t> prover_gui{
-      ui_state, {}, true, {*ui_state.level_ptr->facts().cbegin()}};
+  // auto c = *((*ui_state.level_ptr->facts().cbegin()).hiders.cbegin());
+  // ui_state.proofs.insert(
+  //     {c, {ui_state, {}, true, {*ui_state.level_ptr->facts().cbegin()}}});
+
   HelloImGui::DockableWindow dock_prover;
-  dock_prover.label = "Prover";
+  dock_prover.label = "Proof";
   dock_prover.dockSpaceName = "Right";
   dock_prover.GuiFunction = [&] {
     if (ui_state.active_prover)
       ui_state.active_prover->render();
   };
+  dock_prover.focusWindowAtNextFrame = true;
 
-  params.dockingParams.dockableWindows = {dock_left, dock_right, dock_prover};
+  HelloImGui::DockableWindow dock_output;
+  dock_output.label = "Output";
+  dock_output.dockSpaceName = "Right";
+  dock_output.GuiFunction = [&] {
+  };
+  dock_prover.focusWindowAtNextFrame = false;
+
+  params.dockingParams.dockableWindows = {dock_left, dock_right, dock_prover, dock_output};
 
   params.callbacks.ShowMenus = [] {};
 

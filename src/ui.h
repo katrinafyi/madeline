@@ -176,8 +176,11 @@ template <typename C, typename S> struct proof_widget {
     }
 
     if (im::SmallButton(ui::enum_name(goal))) {
-      ImGui::OpenPopup("target_popup");
+      goal = !goal;
+      // ImGui::OpenPopup("target_popup");
     }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+      ImGui::SetTooltip("toggle the goal's state.");
 
     im::Indent();
 
@@ -191,7 +194,16 @@ template <typename C, typename S> struct proof_widget {
 
     im::Unindent();
 
-    im::Text("qed");
+    if (im::SmallButton("qed?")) {
+      if (ui_state.level_ptr->guess(focus, goal)) {
+        std::cout << "correct!" << std::endl;
+      } else {
+        std::cout << "wrong!" << std::endl;
+      }
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip("attempt the proof, good luck.");
+    }
   }
 };
 
