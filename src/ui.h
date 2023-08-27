@@ -119,7 +119,7 @@ template <typename C, typename S> struct proof_widget {
 
     for (auto &[coord, expr] : vals) {
       if (ui_state.level_ptr->is_known(coord)) {
-        s.add(expr == c.int_val(ui_state.level_ptr->state(coord)));
+        s.add(expr == c.int_val(ui_state.level_ptr->solved(coord)));
       } else {
         s.add(0 <= expr && expr <= 1);
       }
