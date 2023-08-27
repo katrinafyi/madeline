@@ -29,6 +29,15 @@ include(FetchContent)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
+# 
+FetchContent_Declare(z3
+        GIT_REPOSITORY https://github.com/Z3Prover/z3
+        GIT_TAG        z3-4.12.1
+)
+FetchContent_MakeAvailable(z3)
+
+
+
 set(IMGUI_SRC imgui.cpp imgui_draw.cpp imgui_tables.cpp imgui_widgets.cpp backends/imgui_impl_sdl2.cpp backends/imgui_impl_opengl3.cpp imgui_demo.cpp)
 list(TRANSFORM IMGUI_SRC PREPEND vendor/imgui/)
 
@@ -37,10 +46,16 @@ find_package(OpenGL REQUIRED)
 ##########################################################
 # Build your app
 ##########################################################
-add_executable(madeline src/main.cpp src/hexcells.cpp src/lib/hexgrid.cpp
+add_executable(madeline src/main.cpp src/hexcells.cpp src/lib/hexgrid.cpp src/prover.cpp
     ${IMGUI_SRC})
 
 target_include_directories(madeline PRIVATE vendor/imgui vendor/imgui/backends ${OPENGL_INCLUDE_DIR})
+# https://github.com/Z3Prover/z3/blob/master/examples/c%2B%2B/CMakeLists.txt
+target_include_directories(madeline PRIVATE ${z3_SOURCE_DIR}/src/api )
+target_include_directories(madeline PRIVATE ${z3_SOURCE_DIR}/src/api/c++ )
+target_include_directories(madeline PRIVATE ${Z3_CXX_INCLUDE_DIRS})
+target_link_libraries(madeline PRIVATE ${Z3_LIBRARIES})
+target_compile_options(madeline PRIVATE ${Z3_COMPONENT_CXX_FLAGS})
 
 add_subdirectory(vendor/sdl EXCLUDE_FROM_ALL)
 if(TARGET SDL2::SDL2main)
@@ -48,6 +63,7 @@ if(TARGET SDL2::SDL2main)
     target_link_libraries(madeline PRIVATE SDL2::SDL2main)
 endif()
 target_link_libraries(madeline PRIVATE SDL2::SDL2)
+target_link_libraries(madeline PRIVATE libz3)
 
 target_link_libraries(madeline PRIVATE nlohmann_json::nlohmann_json ${OPENGL_LIBRARIES})
 
