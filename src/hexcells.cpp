@@ -115,7 +115,7 @@ using state_t = bool;
       }
     }
 
-    facts.insert({{c}, cs, std::format("= {}", pending.at(c))});
+    facts.insert({{c}, cs, ::cmp::EQ, pending.at(c)});
   }
 
   return {coords, facts, initials};

@@ -2,6 +2,7 @@
 
 #include <format>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
 #include <vector>
@@ -12,6 +13,7 @@
 namespace ui {
 
 namespace im = ImGui;
+using json = nlohmann::json;
 
 template <typename T> const std::vector<T> enum_values();
 template <typename T> const char *enum_name(const T t);
@@ -23,8 +25,12 @@ template <typename C, typename S> struct proof_widget;
 
 // main ui state.
 template <typename C, typename S> struct state {
+  // the initial coord of the current proof
   std::optional<C> selected{};
+  // the currently hovered hexagon
   std::optional<C> hovered{};
+  // a cell to highlight, due to hovering in the proof window. 
+  std::optional<C> highlight{};
 
   std::optional<proof_widget<C, S>> prover{};
 
@@ -55,7 +61,9 @@ template <typename C, typename S> struct fact_widget {
       coord_widget{ui_state, c}.render();
     }
 
-    im::Text(std::format(": ({}", fact.func).c_str());
+    // note: inequality is reversed
+    im::Text(
+        std::format(": {} {}", fact.rhs, enum_name((::cmp)-(int)fact.cmp)).c_str());
     im::SameLine();
     bool first = true;
     for (auto &c : fact.coords) {
@@ -66,7 +74,7 @@ template <typename C, typename S> struct fact_widget {
       first = false;
       coord_widget{ui_state, c}.render();
     }
-    im::Text(")");
+    im::Text("");
   }
 };
 

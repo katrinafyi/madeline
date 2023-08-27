@@ -8,7 +8,7 @@
 #include <nlohmann/json.hpp>
 
 #include "imgui.h"
-#include "lib/hexgrid_json.h"
+#include "lib/json.h"
 
 template <typename K, typename V>
 constexpr std::set<K> keys_of_map(const std::map<K, V> &data) {
@@ -18,11 +18,14 @@ constexpr std::set<K> keys_of_map(const std::map<K, V> &data) {
   return cs;
 }
 
+enum struct cmp { LT = -1, EQ = 0, GT = +1 };
+
 template <typename C> struct fact {
   std::set<C> hiders;
 
   std::set<C> coords;
-  std::string func; // smtlib s-expr head.
+  enum cmp cmp;
+  unsigned rhs;
 
   // fact(const fact &) = delete;
   // fact &operator=(const fact &) = delete;
@@ -30,7 +33,7 @@ template <typename C> struct fact {
   friend std::strong_ordering operator<=>(const fact &l,
                                           const fact &r) = default;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(fact, hiders, coords, func);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(fact, hiders, coords, cmp, rhs);
 };
 
 template <typename C, typename S> struct data {
