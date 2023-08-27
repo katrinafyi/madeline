@@ -120,6 +120,10 @@ struct GUI {
       if (solved) {
         int number = level_ptr->hint_number(x);
         snprintf(label_buf, 19, "%d", number);
+        if (ui_state.level_ptr->state(x) == true) {
+          label_buf[0] = 'X';
+          label_buf[1] = '\0';
+        }
         if (x == selected) {
           if (ui_state.active_prover) {
             im::SetTooltip("solved cell. click to add fact.");
