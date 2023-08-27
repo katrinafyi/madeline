@@ -101,6 +101,10 @@ struct GUI {
         col = HEX_REVEALED_COL;
       }
 
+      if (x == ui_state.highlight) {
+        draw_list->AddNgonFilled(ImVec2(pixels.x, pixels.y), 21,
+                                 IM_COL32(220, 220, 220, 220), 6);
+      }
       draw_list->AddNgonFilled(ImVec2(pixels.x, pixels.y), 20, col, 6);
       if (solved) {
         int number = level_ptr->hint_number(x);
