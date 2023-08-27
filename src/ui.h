@@ -44,6 +44,11 @@ template <typename C, typename S> struct coord_widget {
 
   void render() {
     im::SmallButton(nlohmann::json(coord).dump().c_str());
+    if (im::IsItemHovered()) {
+      ui_state.highlight = coord;
+    } else if (ui_state.highlight == coord) {
+      ui_state.highlight = std::nullopt;
+    }
     im::SameLine();
   }
 };
@@ -90,7 +95,7 @@ template <typename C, typename S> struct proof_widget {
   void render() {
     im::Text("proof ");
     im::SameLine();
-    im::SmallButton(nlohmann::json(focus).dump().c_str());
+    coord_widget{ui_state, focus}.render();
     im::SameLine();
     im::Text("=");
     im::SameLine();
