@@ -34,12 +34,27 @@ include(hello_imgui_add_app)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
+FetchContent_Declare(z3
+        GIT_REPOSITORY https://github.com/Z3Prover/z3
+        GIT_TAG        z3-4.12.1
+)
+FetchContent_MakeAvailable(z3)
+
+
 ##########################################################
 # Build your app
 ##########################################################
-hello_imgui_add_app(madeline src/main.cpp src/hexcells.cpp src/lib/hexgrid.cpp src/ui.cpp)
+hello_imgui_add_app(madeline src/main.cpp src/hexcells.cpp src/lib/hexgrid.cpp src/ui.cpp src/prover.cpp)
+
+# https://github.com/Z3Prover/z3/blob/master/examples/c%2B%2B/CMakeLists.txt
+target_include_directories(madeline PRIVATE ${z3_SOURCE_DIR}/src/api )
+target_include_directories(madeline PRIVATE ${z3_SOURCE_DIR}/src/api/c++ )
+target_include_directories(madeline PRIVATE ${Z3_CXX_INCLUDE_DIRS})
+target_link_libraries(madeline PRIVATE ${Z3_LIBRARIES})
+target_compile_options(madeline PRIVATE ${Z3_COMPONENT_CXX_FLAGS})
 
 target_link_libraries(madeline PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(madeline PRIVATE libz3)
 
 target_compile_options(madeline PRIVATE -g -fsanitize=address,undefined -Wall -pedantic)
 target_link_options(madeline PRIVATE -g -fsanitize=address,undefined)
