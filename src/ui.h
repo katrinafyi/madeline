@@ -123,24 +123,22 @@ template <typename C, typename S> struct proof_widget {
         continue;
       }
 
-      z3::expr fact = c.int_val(0);
+      z3::expr lhs = c.int_val(0);
       for (auto i : x.coords) {
-        fact += i;
+        lhs = lhs + i;
       }
 
       switch (x.cmp) {
       case cmp::EQ:
-        fact = fact == x.rhs;
+        s.add(lhs == c.int_val(x.rhs));
         break;
       case cmp::LT:
-        fact = fact < x.rhs;
+        s.add(lhs < c.int_val(x.rhs));
         break;
       case cmp::GT:
-        fact = fact > x.rhs;
+        s.add(lhs > c.int_val(x.rhs));
         break;
       }
-
-      s.add(fact);
     }
     s.add(!conjecture);
     std::cout << s.to_smt2();
@@ -195,6 +193,7 @@ template <typename C, typename S> struct proof_widget {
     im::Unindent();
 
     if (im::SmallButton("qed?")) {
+      check();
       if (ui_state.level_ptr->guess(focus, goal)) {
         std::cout << "correct!" << std::endl;
       } else {

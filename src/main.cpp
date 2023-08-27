@@ -10,6 +10,8 @@
 #include <optional>
 #include <z3++.h>
 
+namespace im = ImGui;
+
 ui::state<hexcells::coord_t, hexcells::state_t> ui_state;
 
 void demorgan();
@@ -268,11 +270,11 @@ int main(int, char *[]) {
   HelloImGui::DockableWindow dock_output;
   dock_output.label = "Output";
   dock_output.dockSpaceName = "Right";
-  dock_output.GuiFunction = [&] {
-  };
+  dock_output.GuiFunction = [&] {};
   dock_prover.focusWindowAtNextFrame = false;
 
-  params.dockingParams.dockableWindows = {dock_left, dock_right, dock_prover, dock_output};
+  params.dockingParams.dockableWindows = {dock_left, dock_right, dock_prover,
+                                          dock_output};
 
   params.callbacks.ShowMenus = [] {};
 
