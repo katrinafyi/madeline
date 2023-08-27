@@ -13,6 +13,7 @@ namespace im = ImGui;
 
 static ui::state<hexcells::coord_t, hexcells::state_t> ui_state;
 
+void demorgan();
 struct GUI {
   static void gui() {
     static ImVector<ImVec2> points;
@@ -171,6 +172,7 @@ struct GUI {
 };
 
 int main(int, char *[]) {
+  demorgan();
 
   ui_state.level_ptr = hexcells::make_level(1);
 
