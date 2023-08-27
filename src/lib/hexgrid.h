@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <format>
 #include <iterator>
 #include <vector>
 
@@ -33,6 +34,8 @@ struct Hex {
   // }
 
   friend std::strong_ordering operator<=>(const Hex &l, const Hex &r) = default;
+
+  std::string str() { return std::format("[{},{},{}]", q, r, s); }
 };
 
 struct FractionalHex {

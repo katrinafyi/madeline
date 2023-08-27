@@ -9,6 +9,7 @@
 
 #include "imgui.h"
 #include "lib/json.h"
+#include <z3++.h>
 
 template <typename K, typename V>
 constexpr std::set<K> keys_of_map(const std::map<K, V> &data) {
@@ -21,14 +22,16 @@ constexpr std::set<K> keys_of_map(const std::map<K, V> &data) {
 enum struct cmp { LT = -1, EQ = 0, GT = +1 };
 
 template <typename C> struct fact {
-  std::set<C> hiders;
+  std::set<C> hiders; // the center cell
 
-  std::set<C> coords;
+  std::set<C> coords; // participiating cells (adjacent)
   enum cmp cmp;
   unsigned rhs;
 
   // fact(const fact &) = delete;
   // fact &operator=(const fact &) = delete;
+
+  z3::expr encode(z3::solver s, z3::context c) {}
 
   friend std::strong_ordering operator<=>(const fact &l,
                                           const fact &r) = default;

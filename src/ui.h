@@ -1,12 +1,15 @@
 #pragma once
 
 #include <format>
+#include <iostream>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
 #include <vector>
+#include <z3++.h>
 
+#include "hexcells.h"
 #include "imgui.h"
 #include "level.h"
 
@@ -93,6 +96,67 @@ template <typename C, typename S> struct proof_widget {
   S goal;
 
   std::vector<::fact<C>> facts;
+
+  void check() {
+
+    z3::context c;
+
+    std::map<decltype(ui_state.level_ptr->coords), z3::expr> vals{};
+
+    // add all things
+    for (auto &hex : ui_state.level_ptr->coords) {
+      vals[c] = c.bool_const(hex.str());
+    }
+
+    z3::expr concerning = vals[focus];
+
+    z3::expr conjecture = concerning == true;
+
+    z3::solver s(c);
+
+    // add facts
+    for (auto &x : facts) {
+
+      if (x.hiders.size() != 1 || x.coords.size() < 1) {
+        std::cout << "BIG FAIL" << __LINE__ << "@" << __FILE_NAME__
+                  << std::endl;
+        continue;
+      }
+
+      z3::expr fact = c.int_val(0);
+      for (auto i : x.coords) {
+        fact += i;
+      }
+
+      switch (x.cmp) {
+      case cmp::EQ:
+        fact = fact == x.rhs;
+        break;
+      case cmp::LT:
+        fact = fact < x.rhs;
+        break;
+      case cmp::GT:
+        fact = fact > x.rhs;
+        break;
+      }
+
+      s.add(fact);
+    }
+    s.add(!conjecture);
+    std::cout << s.to_smt2();
+
+    switch (s.check()) {
+    case z3::unsat:
+      std::cout << "Proof is valid\n";
+      break;
+    case z3::sat:
+      std::cout << "Proof is not valid\n";
+      break;
+    case z3::unknown:
+      std::cout << "unknown\n";
+      break;
+    }
+  }
 
   void render() {
     im::Text("proof ");

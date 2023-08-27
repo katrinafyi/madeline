@@ -8,12 +8,14 @@
 #include "ui.h"
 #include <memory>
 #include <optional>
+#include <z3++.h>
 
-namespace im = ImGui;
-
-static ui::state<hexcells::coord_t, hexcells::state_t> ui_state;
+ui::state<hexcells::coord_t, hexcells::state_t> ui_state;
 
 void demorgan();
+
+void check() { ui_state.level_ptr->coords(); }
+
 struct GUI {
   static void gui() {
     static ImVector<ImVec2> points;
