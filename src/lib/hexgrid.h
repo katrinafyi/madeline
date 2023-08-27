@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <format>
 #include <iterator>
+#include <sstream>
 #include <vector>
 
 #ifndef M_PI
@@ -35,7 +35,12 @@ struct Hex {
 
   friend std::strong_ordering operator<=>(const Hex &l, const Hex &r) = default;
 
-  std::string str() const& { return std::format("[{},{},{}]", q, r, s); }
+  std::string str() const & {
+    std::stringstream ss{};
+    ss << "[" << q << "," << r << "," << s << "]";
+
+    return ss.str();
+  }
 };
 
 struct FractionalHex {
