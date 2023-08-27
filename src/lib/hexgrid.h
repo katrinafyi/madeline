@@ -35,7 +35,7 @@ struct Hex {
 
   friend std::strong_ordering operator<=>(const Hex &l, const Hex &r) = default;
 
-  std::string str() { return std::format("[{},{},{}]", q, r, s); }
+  std::string str() const& { return std::format("[{},{},{}]", q, r, s); }
 };
 
 struct FractionalHex {

@@ -132,10 +132,13 @@ struct GUI {
         label_buf[1] = '\0';
 
         if (x == selected) {
-          im::SetTooltip("unsolved cell. click to open proof.");
+          im::SetTooltip("unsolved cell. click to open in-progress proof.");
         }
       } else {
         show_label = false;
+        if (x == selected) {
+          im::SetTooltip("unsolved cell. click to start proof.");
+        }
       }
 
       if (show_label) {
@@ -183,8 +186,8 @@ struct GUI {
           }
         }
       }
-      mouse_button =
-          (ImGuiPopupFlags_MouseButtonRight & ImGuiPopupFlags_MouseButtonMask_);
+      // mouse_button =
+      //     (ImGuiPopupFlags_MouseButtonRight & ImGuiPopupFlags_MouseButtonMask_);
       if (ImGui::IsMouseReleased(mouse_button)) {
         if (ui_state.active_prover) {
           auto &l = *ui_state.level_ptr;
@@ -271,10 +274,10 @@ int main(int, char *[]) {
   dock_output.label = "Output";
   dock_output.dockSpaceName = "Right";
   dock_output.GuiFunction = [&] {};
-  dock_prover.focusWindowAtNextFrame = false;
+  dock_output.focusWindowAtNextFrame = false;
 
-  params.dockingParams.dockableWindows = {dock_left, dock_right, dock_prover,
-                                          dock_output};
+  params.dockingParams.dockableWindows = {dock_left, dock_right, 
+                                          dock_output, dock_prover};
 
   params.callbacks.ShowMenus = [] {};
 

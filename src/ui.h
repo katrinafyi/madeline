@@ -97,24 +97,30 @@ template <typename C, typename S> struct proof_widget {
 
   std::vector<::fact<C>> facts;
 
-  void check() {
+  bool check() {
 
     z3::context c;
 
-    std::map<decltype(ui_state.level_ptr->coords), z3::expr> vals{};
+    std::map<hexcells::coord_t, z3::expr> vals{};
 
     // add all things
-    for (auto &hex : ui_state.level_ptr->coords) {
-      vals[c] = c.bool_const(hex.str());
+    for (auto &hex : ui_state.level_ptr->coords()) {
+      vals.insert({hex, c.int_const(hex.str().c_str())});
     }
 
-    z3::expr concerning = vals[focus];
+    z3::expr concerning = vals.at(focus);
 
-    z3::expr conjecture = concerning == true;
+    z3::expr conjecture = concerning == goal;
 
     z3::solver s(c);
 
+    std::cout << s.to_smt2();
     // add facts
+
+    for (auto &[coord, expr] : vals) {
+      s.add(0 <= expr && expr <= 1);
+    }
+
     for (auto &x : facts) {
 
       if (x.hiders.size() != 1 || x.coords.size() < 1) {
@@ -124,8 +130,8 @@ template <typename C, typename S> struct proof_widget {
       }
 
       z3::expr lhs = c.int_val(0);
-      for (auto i : x.coords) {
-        lhs = lhs + i;
+      for (C i : x.coords) {
+        lhs = lhs + vals.at(i);
       }
 
       switch (x.cmp) {
@@ -139,20 +145,22 @@ template <typename C, typename S> struct proof_widget {
         s.add(lhs > c.int_val(x.rhs));
         break;
       }
+      std::cout << s.to_smt2();
     }
+    std::cout << s.to_smt2();
     s.add(!conjecture);
     std::cout << s.to_smt2();
 
     switch (s.check()) {
     case z3::unsat:
       std::cout << "Proof is valid\n";
-      break;
+      return true;
     case z3::sat:
       std::cout << "Proof is not valid\n";
-      break;
+      return false;
     case z3::unknown:
       std::cout << "unknown\n";
-      break;
+      return false;
     }
   }
 
@@ -193,9 +201,9 @@ template <typename C, typename S> struct proof_widget {
     im::Unindent();
 
     if (im::SmallButton("qed?")) {
-      check();
-      if (ui_state.level_ptr->guess(focus, goal)) {
+      if (check() && ui_state.level_ptr->guess(focus, goal)) {
         std::cout << "correct!" << std::endl;
+        ui_state.active_prover = nullptr;
       } else {
         std::cout << "wrong!" << std::endl;
       }
