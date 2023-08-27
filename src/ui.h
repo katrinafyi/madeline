@@ -29,10 +29,11 @@ template <typename C, typename S> struct state {
   std::optional<C> selected{};
   // the currently hovered hexagon
   std::optional<C> hovered{};
-  // a cell to highlight, due to hovering in the proof window. 
+  // a cell to highlight, due to hovering in the proof window.
   std::optional<C> highlight{};
 
-  std::optional<proof_widget<C, S>> prover{};
+  proof_widget<C, S> *active_prover = nullptr;
+  std::map<C, proof_widget<C, S>> proofs{};
 
   std::shared_ptr<::level<C, S>> level_ptr;
 };
@@ -63,7 +64,8 @@ template <typename C, typename S> struct fact_widget {
 
     // note: inequality is reversed
     im::Text(
-        std::format(": {} {}", fact.rhs, enum_name((::cmp)-(int)fact.cmp)).c_str());
+        std::format(": {} {}", fact.rhs, enum_name((::cmp) - (int)fact.cmp))
+            .c_str());
     im::SameLine();
     bool first = true;
     for (auto &c : fact.coords) {
@@ -82,10 +84,10 @@ template <typename C, typename S> struct proof_widget {
 
   state<C, S> &ui_state;
 
-  const C focus;
+  C focus;
   S goal;
 
-  const std::vector<::fact<C>> facts;
+  std::vector<::fact<C>> facts;
 
   void render() {
     im::Text("proof ");

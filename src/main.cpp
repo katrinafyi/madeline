@@ -133,7 +133,23 @@ struct GUI {
     ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
     if (opt_enable_context_menu && drag_delta.x == 0.0f &&
         drag_delta.y == 0.0f) {
-      ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonLeft);
+      // ImGui::OpenPopupOnItemClick("context",
+      // ImGuiPopupFlags_MouseButtonLeft);
+
+      int mouse_button =
+          (ImGuiPopupFlags_MouseButtonLeft & ImGuiPopupFlags_MouseButtonMask_);
+      if (ImGui::IsMouseReleased(mouse_button) &&
+          ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
+        if (any_selected) {
+          if (ui_state.proofs.contains(selected)) {
+            ui_state.active_prover = &ui_state.proofs.at(selected);
+          } else {
+            ui_state.proofs.insert({selected, {ui_state, selected}});
+            ui_state.active_prover = &ui_state.proofs.at(selected);
+          }
+        }
+      }
+
     } else {
       // draw_list->AddNgonFilled(ImVec2(canvas_p0.x, canvas_p0.y), 20,
       //                          ImColor(255, 0, 0), 6);
@@ -193,7 +209,10 @@ int main(int, char *[]) {
   HelloImGui::DockableWindow dock_prover;
   dock_prover.label = "Prover";
   dock_prover.dockSpaceName = "Right";
-  dock_prover.GuiFunction = [&] { prover_gui.render(); };
+  dock_prover.GuiFunction = [&] {
+    if (ui_state.active_prover)
+      ui_state.active_prover->render();
+  };
 
   params.dockingParams.dockableWindows = {dock_left, dock_right, dock_prover};
 
