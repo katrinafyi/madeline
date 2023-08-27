@@ -5,12 +5,13 @@
 #include "imgui_theme.h"
 #include "level.h"
 #include "lib/hexgrid.h"
-#include "prover.h"
+#include "ui.h"
 #include <memory>
+#include <optional>
 
 namespace im = ImGui;
 
-static std::shared_ptr<::level<hexcells::coord_t, hexcells::state_t>> level_ptr;
+static ui::state<hexcells::coord_t, hexcells::state_t> ui_state;
 
 struct GUI {
   static void gui() {
@@ -60,7 +61,6 @@ struct GUI {
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
 
     draw_list->AddRectFilled(canvas_p0, canvas_p1, CANVAS_BG_COL);
-    draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
 
     // This will catch our interactions
     ImGui::InvisibleButton("canvas", canvas_sz,
@@ -85,6 +85,8 @@ struct GUI {
 
     draw_list->PushClipRect(canvas_p0, canvas_p1, true);
     bool any_selected = false;
+    auto level_ptr = ui_state.level_ptr;
+    assert(level_ptr);
     for (auto &x : level_ptr->coords()) {
       hex::Point pixels = hex::hex_to_pixel(layout, x);
       auto solved = level_ptr->solved(x);
@@ -110,9 +112,9 @@ struct GUI {
     }
     draw_list->PopClipRect();
     if (any_selected) {
-      level_ptr->GUIstate.hovered = selected;
+      ui_state.hovered = selected;
     } else {
-      level_ptr->GUIstate.hovered = {};
+      ui_state.hovered = std::nullopt;
     }
 
     // Pan (we use a zero mouse threshold when there's no context menu)
@@ -163,13 +165,14 @@ struct GUI {
                            IM_COL32(200, 200, 200, 40));
     }
 
+    draw_list->AddRect(canvas_p0, canvas_p1, IM_COL32(255, 255, 255, 255));
     draw_list->PopClipRect();
   }
 };
 
 int main(int, char *[]) {
 
-  level_ptr = hexcells::make_level(1);
+  ui_state.level_ptr = hexcells::make_level(1);
 
   HelloImGui::RunnerParams params;
 
@@ -183,8 +186,8 @@ int main(int, char *[]) {
   dock_right.dockSpaceName = "Right";
   dock_right.GuiFunction = &GUI::gui;
 
-  prover::proof_widget<hexcells::coord_t, hexcells::state_t> prover_gui{
-      level_ptr, {}, true, {*level_ptr->facts().cbegin()}};
+  ui::proof_widget<hexcells::coord_t, hexcells::state_t> prover_gui{
+      ui_state, {}, true, {*ui_state.level_ptr->facts().cbegin()}};
   HelloImGui::DockableWindow dock_prover;
   dock_prover.label = "Prover";
   dock_prover.dockSpaceName = "Right";
