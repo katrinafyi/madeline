@@ -36,6 +36,7 @@ This shows the main interface and a partial proof in the right panel. An earlier
   - zooming of main game canvas.
   - improved tutorial text above relevant panels.
   - misc styling and polish.
+  - test modes of operation: mouse only, keyboard only, mobile touch.
 - levels:
   - fix hexcells level 1-1
   - support for choosing a level
@@ -44,6 +45,7 @@ This shows the main interface and a partial proof in the right panel. An earlier
 - gameplay:
   - scoring by number of lemma usages, possibly tie-broken by number of coordinates mentioned in each lemma.
   - restart / save functionality
+  - undo tree functionality
 - internals:
   - performance profiling. reduce copies, especially within widgets.
   - compile to web with emscripten. investigate z3 failure via wasm.
