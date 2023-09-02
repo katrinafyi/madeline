@@ -28,6 +28,8 @@ template <typename C, typename S> struct proof_widget;
 
 // main ui state.
 template <typename C, typename S> struct state {
+  // in reveal-all mode? (for debugging)
+  bool reveal;
   // the initial coord of the current proof
   std::optional<C> selected{};
   // the currently hovered hexagon

@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "imgui_theme.h"
 #include "level.h"
+#include "lib/args.hxx"
 #include "lib/hexgrid.h"
 #include "ui.h"
 #include <memory>
@@ -94,7 +95,7 @@ struct GUI {
     assert(level_ptr);
     for (auto &x : level_ptr->coords()) {
       hex::Point pixels = hex::hex_to_pixel(layout, x);
-      auto solved = level_ptr->solved(x);
+      auto solved = level_ptr->solved(x) || ui_state.reveal;
 
       auto col = HEX_HIDDEN_COL;
       if (x == selected) {
@@ -191,7 +192,8 @@ struct GUI {
         }
       }
       // mouse_button =
-      //     (ImGuiPopupFlags_MouseButtonRight & ImGuiPopupFlags_MouseButtonMask_);
+      //     (ImGuiPopupFlags_MouseButtonRight &
+      //     ImGuiPopupFlags_MouseButtonMask_);
       if (ImGui::IsMouseReleased(mouse_button)) {
         if (ui_state.active_prover) {
           auto &l = *ui_state.level_ptr;
@@ -244,11 +246,7 @@ struct GUI {
   }
 };
 
-int main(int, char *[]) {
-  demorgan();
-
-  ui_state.level_ptr = hexcells::make_level(1);
-
+void main_gui() {
   HelloImGui::RunnerParams params;
 
   HelloImGui::DockableWindow dock_left;
@@ -280,8 +278,8 @@ int main(int, char *[]) {
   dock_output.GuiFunction = [&] {};
   dock_output.focusWindowAtNextFrame = false;
 
-  params.dockingParams.dockableWindows = {dock_left, dock_right, 
-                                          dock_output, dock_prover};
+  params.dockingParams.dockableWindows = {dock_left, dock_right, dock_output,
+                                          dock_prover};
 
   params.callbacks.ShowMenus = [] {};
 
@@ -297,5 +295,31 @@ int main(int, char *[]) {
   params.imGuiWindowParams.showMenu_View_Themes = true;
 
   HelloImGui::Run(params);
+}
+
+int main(int argc, char *argv[]) {
+  demorgan();
+
+  args::ArgumentParser parser{"madeline/proof general.",
+                              "uqcs hackathon 2023."};
+  args::HelpFlag help{
+      parser, "help", "Displays command line help.", {'h', "help"}};
+  args::Flag reveal{parser, "reveal", "Reveals all cells.", {}};
+
+  try {
+    parser.ParseCLI(argc, argv);
+  } catch (args::Help) {
+    std::cout << parser;
+    return 0;
+  } catch (args::Error e) {
+    std::cerr << e.what() << std::endl;
+    std::cerr << parser;
+    return 1;
+  }
+  if (reveal)
+    ui_state.reveal = true;
+
+  ui_state.level_ptr = hexcells::make_level(1);
+
   return 0;
 }

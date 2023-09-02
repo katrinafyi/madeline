@@ -56,7 +56,5 @@ target_compile_options(madeline PRIVATE ${Z3_COMPONENT_CXX_FLAGS})
 target_link_libraries(madeline PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(madeline PRIVATE libz3)
 
-target_compile_options(madeline PRIVATE -g -fsanitize=address,undefined -Wall -pedantic)
-target_link_options(madeline PRIVATE -g -fsanitize=address,undefined)
-
-
+target_compile_options(madeline PRIVATE -g -Wall -pedantic -pg)
+target_link_options(madeline PRIVATE -g -pg)
