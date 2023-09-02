@@ -5,6 +5,7 @@ project(madeline)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(SDL_DISABLE_UNINSTALL ON)
 set(HELLOIMGUI_WITH_SDL ON)
 # add the executable
 # add_executable(madeline src/main.cpp)
@@ -56,5 +57,6 @@ target_compile_options(madeline PRIVATE ${Z3_COMPONENT_CXX_FLAGS})
 target_link_libraries(madeline PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(madeline PRIVATE libz3)
 
-target_compile_options(madeline PRIVATE -g -Wall -pedantic -pg)
-target_link_options(madeline PRIVATE -g -pg)
+# -fsanitize=address,undefined 
+target_compile_options(madeline PRIVATE -g -Wall -pedantic -pg -O3)
+target_link_options(madeline PRIVATE -g -pg -O3)

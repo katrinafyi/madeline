@@ -15,8 +15,8 @@ using state_t = bool;
   coord_t pos{0, 0, 0};
   std::map<coord_t, state_t> coords{{pos, false}};
   std::map<coord_t, unsigned> pending;
-  std::set<fact<coord_t>> facts;
-  std::set<coord_t> initials;
+  std::vector<fact<coord_t>> facts;
+  std::vector<coord_t> initials;
 
   // clang-format off
   auto n  = [&]() { pos = hex::hex_add(pos, {0, -1, 1}); };
@@ -26,7 +26,7 @@ using state_t = bool;
   auto sw = [&]() { pos = hex::hex_add(pos, {-1, 1, 0}); };
   auto nw = [&]() { pos = hex::hex_add(pos, {-1, 0, 1}); };
 
-  auto initial = [&]() { initials.insert(pos); };
+  auto initial = [&]() { initials.push_back(pos); };
 
   // clang-format on
 
@@ -70,7 +70,7 @@ using state_t = bool;
     s();
     num(1);
     se();
-    mine();
+    num(0);
     n();
     initial();
     num(2);
@@ -94,6 +94,7 @@ using state_t = bool;
     num(2);
     s();
     mine();
+    s();
     num(1);
     se();
     num(0);
@@ -107,15 +108,15 @@ using state_t = bool;
   }
 
   for (const auto &[c, count] : pending) {
-    std::set<coord_t> cs{};
+    std::vector<coord_t> cs{};
     for (unsigned i = 0; i < 6; i++) {
       coord_t other = hex::hex_neighbor(c, i);
       if (coords.contains(other)) {
-        cs.insert(other);
+        cs.push_back(other);
       }
     }
 
-    facts.insert({{c}, cs, ::cmp::EQ, pending.at(c)});
+    facts.emplace_back(std::vector{c}, cs, ::cmp::EQ, pending.at(c));
   }
 
   return {coords, facts, initials};

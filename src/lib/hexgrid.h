@@ -157,3 +157,4 @@ Hex cube_round(FractionalHex frac);
 
 // Tests
 } // namespace hex
+

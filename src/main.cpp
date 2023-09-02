@@ -2,6 +2,7 @@
 
 #include "hexcells.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_theme.h"
 #include "level.h"
 #include "lib/args.hxx"
@@ -201,9 +202,9 @@ struct GUI {
           for (auto &f : ui_state.level_ptr->facts()) {
             if (!l.is_known(f))
               continue;
-            if (f.hiders.contains(selected) &&
+            if (f.hiders_contains(selected) &&
                 std::find(facts.cbegin(), facts.cend(), f) == facts.cend()) {
-              ui_state.active_prover->facts.push_back(f);
+              facts.push_back(std::ref(f));
             }
           }
         }
@@ -275,7 +276,11 @@ void main_gui() {
   HelloImGui::DockableWindow dock_output;
   dock_output.label = "Output";
   dock_output.dockSpaceName = "Right";
-  dock_output.GuiFunction = [&] {};
+  dock_output.GuiFunction = [&] {
+    im::InputTextMultiline("", ui_state.prover_output.data(),
+                           ui_state.prover_output.length(), {0, 0},
+                           ImGuiInputTextFlags_ReadOnly);
+  };
   dock_output.focusWindowAtNextFrame = false;
 
   params.dockingParams.dockableWindows = {dock_left, dock_right, dock_output,
@@ -304,14 +309,14 @@ int main(int argc, char *argv[]) {
                               "uqcs hackathon 2023."};
   args::HelpFlag help{
       parser, "help", "Displays command line help.", {'h', "help"}};
-  args::Flag reveal{parser, "reveal", "Reveals all cells.", {}};
+  args::Flag reveal{parser, "reveal", "Reveals all cells.", {"reveal"}};
 
   try {
     parser.ParseCLI(argc, argv);
-  } catch (args::Help) {
+  } catch (args::Help &) {
     std::cout << parser;
     return 0;
-  } catch (args::Error e) {
+  } catch (args::Error &e) {
     std::cerr << e.what() << std::endl;
     std::cerr << parser;
     return 1;
@@ -320,6 +325,8 @@ int main(int argc, char *argv[]) {
     ui_state.reveal = true;
 
   ui_state.level_ptr = hexcells::make_level(1);
+
+  main_gui();
 
   return 0;
 }

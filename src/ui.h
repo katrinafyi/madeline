@@ -37,6 +37,7 @@ template <typename C, typename S> struct state {
   // a cell to highlight, due to hovering in the proof window.
   std::optional<C> highlight{};
 
+  std::string prover_output;
   proof_widget<C, S> *active_prover = nullptr;
   std::map<C, proof_widget<C, S>> proofs{};
 
@@ -62,7 +63,7 @@ template <typename C, typename S> struct coord_widget {
 template <typename C, typename S> struct fact_widget {
   state<C, S> &ui_state;
 
-  const ::fact<C> fact;
+  const ::fact<C> &fact;
 
   void render() {
     im::Text("fact revealed by");
@@ -98,10 +99,9 @@ template <typename C, typename S> struct proof_widget {
   C focus;
   S goal;
 
-  std::vector<::fact<C>> facts;
+  std::vector<std::reference_wrapper<const ::fact<C>>> facts;
 
-  bool check() {
-
+  bool check(std::ostream &out) {
     z3::context c;
 
     std::map<hexcells::coord_t, z3::expr> vals{};
@@ -117,7 +117,7 @@ template <typename C, typename S> struct proof_widget {
 
     z3::solver s(c);
 
-    std::cout << s.to_smt2();
+    // std::cout << s.to_smt2();
     // add facts
 
     for (auto &[coord, expr] : vals) {
@@ -128,7 +128,8 @@ template <typename C, typename S> struct proof_widget {
       }
     }
 
-    for (auto &x : facts) {
+    for (auto &r : facts) {
+      auto& x = r.get();
 
       if (x.hiders.size() != 1 || x.coords.size() < 1) {
         std::cout << "BIG FAIL" << __LINE__ << "@" << __FILE_NAME__
@@ -152,21 +153,23 @@ template <typename C, typename S> struct proof_widget {
         s.add(lhs > c.int_val(x.rhs));
         break;
       }
-      std::cout << s.to_smt2();
+      // auto str = s.to_smt2();
+      // std::cout << str;
     }
-    std::cout << s.to_smt2();
+    // std::cout << s.to_smt2();
     s.add(!conjecture);
-    std::cout << s.to_smt2();
+    out << s.to_smt2();
+    // ui_state.prover_output.append(s.to_smt2());
 
     switch (s.check()) {
     case z3::unsat:
-      std::cout << "Proof is valid\n";
+      out << "Proof is valid\n";
       return true;
     case z3::sat:
-      std::cout << "Proof is not valid\n";
+      out << "Proof is not valid\n";
       return false;
     case z3::unknown:
-      std::cout << "unknown\n";
+      out << "Unknown\n";
       return false;
     }
   }
@@ -188,7 +191,8 @@ template <typename C, typename S> struct proof_widget {
       ImGui::EndPopup();
     }
 
-    if (im::SmallButton(ui::enum_name(goal))) {
+    if (im::SmallButton(ui::enum_name(goal)) ||
+        im::IsKeyReleased(ImGuiMod_Shift)) {
       goal = !goal;
       // ImGui::OpenPopup("target_popup");
     }
@@ -200,15 +204,18 @@ template <typename C, typename S> struct proof_widget {
     im::Text("using");
     im::Indent();
     for (const auto &f : facts) {
-      fact_widget{ui_state, f}.render();
+      fact_widget{ui_state, f.get()}.render();
     }
 
     im::Unindent();
 
     im::Unindent();
 
-    if (im::SmallButton("qed?")) {
-      if (check() && ui_state.level_ptr->guess(focus, goal)) {
+    if (im::SmallButton("qed?") || im::IsKeyReleased(ImGuiKey_Space)) {
+      std::stringstream ss{};
+      bool smt_result = check(ss);
+      ui_state.prover_output = std::move(ss).str();
+      if (smt_result && ui_state.level_ptr->guess(focus, goal)) {
         std::cout << "correct!" << std::endl;
         ui_state.active_prover = nullptr;
       } else {
@@ -216,7 +223,7 @@ template <typename C, typename S> struct proof_widget {
       }
     }
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip("attempt the proof, good luck.");
+      ImGui::SetTooltip("attempt the proof, good luck. (hotkey: space)");
     }
   }
 };
